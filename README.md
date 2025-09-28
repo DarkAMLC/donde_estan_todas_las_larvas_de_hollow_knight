@@ -1,6 +1,6 @@
 # Mapa de Larvas en Hollow Knight
 
-![Mapa de larvas](img/mapa.png)
+![Mapa de larvas](mapa/guia.png)
 
 Proyecto interactivo para **ubicar todas las larvas del juego Hollow Knight**. Incluye un **mapa detallado**, información de ubicación y consejos para jugadores.
 
