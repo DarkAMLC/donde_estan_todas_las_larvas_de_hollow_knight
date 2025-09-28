@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Mapa de Larvas</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+  background: black;
+}
+
+#mapa {
+  position: relative;
+  width: fit-content;
+  height: fit-content;
+  margin: auto;
+}
+
+#contenedor-img {
+  position: relative;
+  display: inline-block;
+}
+
+#contenedor-img img.fondo {
+  display: block;
+  max-width: none;
+}
+
+.larva-wrapper {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+.larva-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 90px;
+  height: 90px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255,255,0,0.6), rgba(255,0,0,0) 70%);
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.larva-wrapper img.larva {
+  position: relative;
+  width: 35px;
+  height: 35px;
+  z-index: 1;
+}
+</style>
+</head>
+<body>
+
+<div id="mapa">
+  <div id="contenedor-img">
+    <img src="mapa-hollowknight.png" class="fondo" id="fondo">
+  </div>
+</div>
+
+<script>
+const larvasDefinidas = [
+// herramienta para saber la posici�n de un punto en una imagen https://imageonline.io/find-coordinates-of-image/
+// X: 0 izquierda, 2000 derecha | Y: 0 arriba, 1500 abajo
+/*01*/{id:"Crossroads_05",x:930,y:380,tuto:"https://youtu.be/video1"},
+/*02*/{id:"Mines_16",x:1010,y:320,tuto:"https://youtu.be/video"},
+/*03*/{id:"Crossroads_03",x:1060,y:423,tuto:"https://youtu.be/video"},
+/*04*/{id:"Crossroads_31",x:1088,y:453,tuto:"https://youtu.be/video"},
+/*05*/{id:"Crossroads_48",x:1138,y:350,tuto:"https://youtu.be/video"},
+/*06*/{id:"Mines_03",x:1250,y:345,tuto:"https://youtu.be/video"},
+/*07*/{id:"Mines_19",x:1280,y:300,tuto:"https://youtu.be/video"},
+/*08*/{id:"Mines_04",x:1305,y:365,tuto:"https://youtu.be/video"},
+/*09*/{id:"Mines_31",x:1360,y:300,tuto:"https://youtu.be/video"},
+/*10*/{id:"Mines_24",x:1500,y:210,tuto:"https://youtu.be/video"},
+/*11*/{id:"Mines_35",x:1474,y:370,tuto:"https://youtu.be/video"},
+/*12*/{id:"RestingGrounds_10",x:1580,y:495,tuto:"https://youtu.be/video"},
+/*13*/{id:"Ruins1_32",x:1121,y:668,tuto:"https://youtu.be/video"},
+/*14*/{id:"Fungus1_13",x:1220,y:766,tuto:"https://youtu.be/video"},
+/*15*/{id:"Ruins2_03",x:1327,y:752,tuto:"https://youtu.be/video"},
+/*16*/{id:"Ruins_House_01",x:1452,y:873,tuto:"https://youtu.be/video"},
+/*17*/{id:"xxxxxx",x:1514,y:906,tuto:"https://youtu.be/video"},
+/*18*/{id:"Ruins2_07",x:1593,y:887,tuto:"https://youtu.be/video"},
+/*19*/{id:"Waterways_13",x:1500,y:962,tuto:"https://youtu.be/video"},
+/*20*/{id:"xxxxxx",x:1584,y:976,tuto:"https://youtu.be/video"},
+/*21*/{id:"Ruins2_11",x:1603,y:775,tuto:"https://youtu.be/video"},
+/*22*/{id:"Ruins2_11",x:1609,y:775,tuto:"https://youtu.be/video"},
+/*23*/{id:"Ruins2_11",x:1615,y:775,tuto:"https://youtu.be/video"},
+/*24*/{id:"Deepnest_East_11",x:1785,y:883,tuto:"https://youtu.be/video"},
+/*25*/{id:"xxxxxx",x:1743,y:981,tuto:"https://youtu.be/video"},
+/*26*/{id:"Deepnest_East_14",x:1963,y:992,tuto:"https://youtu.be/video"},
+/*27*/{id:"Waterways_04",x:1126,y:939,tuto:"https://youtu.be/video"},
+/*28 test*/{id:"Abyss_17",x:1136,y:1109,tuto:"https://youtu.be/video"},
+/*29*/{id:"Abyss_19",x:972,y:1113,tuto:"https://youtu.be/video"},
+/*30*/{id:"xxxxxx",x:547,y:1085,tuto:"https://youtu.be/video"},
+/*31*/{id:"xxxxxx",x:560,y:972,tuto:"https://youtu.be/video"},
+/*32*/{id:"xxxxxx",x:360,y:1005,tuto:"https://youtu.be/video"},
+/*33*/{id:"xxxxxx",x:126,y:935,tuto:"https://youtu.be/video"},
+/*34*/{id:"xxxxxx",x:355,y:715,tuto:"https://youtu.be/video"},
+/*35*/{id:"xxxxxx",x:700,y:840,tuto:"https://youtu.be/video"},
+/*36*/{id:"Fungus2_20",x:650,y:785,tuto:"https://youtu.be/video"},
+/*37*/{id:"Fungus2_18",x:827,y:734,tuto:"https://youtu.be/video"},
+/*38*/{id:"Fungus3_47",x:687,y:614,tuto:"https://youtu.be/video"},
+/*39*/{id:"Crossroads_35",x:766,y:474,tuto:"https://youtu.be/video"},
+/*40*/{id:"Fungus1_06",x:715,y:446,tuto:"https://youtu.be/video"},
+/*41*/{id:"Fungus1_07",x:687,y:505,tuto:"https://youtu.be/video"},
+/*42*/{id:"Fungus1_28",x:549,y:297,tuto:"https://youtu.be/video"},
+/*43*/{id:"Fungus1_21",x:444,y:368,tuto:"https://youtu.be/video"},
+/*44*/ {id:"xxxxxxx",x:467,y:540,tuto:"https://youtu.be/video"},
+/*45*/{id:"xxxxxx",x:369,y:528,tuto:"https://youtu.be/video"},
+/*46*/{id:"xxxxxx",x:210,y:593,tuto:"https://youtu.be/video"}
+];
+
+//Cargar progreso desde larvas.json (solo id + estado)
+fetch("larvas.json")
+  .then(res => res.json())
+  .then(progreso => {
+    const contenedor = document.getElementById("contenedor-img");
+    const fondo = document.getElementById("fondo");
+
+    function dibujarLarvas() {
+      const contAncho = fondo.naturalWidth;
+      const contAlto = fondo.naturalHeight;
+
+      // limpiar larvas previas
+      document.querySelectorAll(".larva-wrapper").forEach(e => e.remove());
+
+      larvasDefinidas.forEach(larva => {
+        // buscar progreso de esta larva por id
+        const estado = progreso.find(p => p.sceneName === larva.id);
+
+        // si no esta salvada, la dibuja
+        if (!estado || estado.activated === false) {
+          const wrapper = document.createElement("div");
+          wrapper.className = "larva-wrapper";
+          wrapper.style.left = (larva.x / 2000) * contAncho + "px";
+          wrapper.style.top = (larva.y / 1500) * contAlto + "px";
+
+          const img = document.createElement("img");
+          img.src = "Grub.png";
+          img.className = "larva";
+          wrapper.appendChild(img);
+
+          wrapper.addEventListener("click", () => {
+            window.open(larva.tuto, "_blank");
+          });
+
+          contenedor.appendChild(wrapper);
+        }
+      });
+    }
+
+    if (fondo.complete) {
+      dibujarLarvas();
+    } else {
+      fondo.addEventListener("load", dibujarLarvas);
+    }
+  });
+</script>
+</body>
+</html>
