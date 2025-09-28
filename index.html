@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>donde estan los Grubs</title>
+  <!-- Incluimos aes-js -->
+  <script src="aes.js"></script>
+  <style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+    text-align: center;
+    padding: 50px;
+}
+
+h2 {
+    color: #ffcc00;
+}
+
+input[type="file"] {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #ffcc00;
+    color: #1a1a1a;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+button:hover:enabled {
+    background-color: #ffaa00;
+}
+table {
+  border-collapse: collapse; /* Quita espacios entre bordes */
+  width: 80%;
+  margin: auto;
+  background-color: #1a1a1a;
+  color: #f0f0f0;
+}
+
+th, td {
+  border: 1px solid #555;
+  padding: 10px;
+  text-align: center;
+}
+
+th {
+  background-color: #333;
+  color: #ffcc00;
+}
+.imagen-con-texto {
+  position: relative; /* Contenedor relativo */
+  display: inline-block; /* Ajusta al tamaño de la imagen */
+}
+
+.imagen-con-texto img {
+  display: block;
+  width: 400px;
+  height: auto;
+}
+
+/* Overlay opcional */
+.imagen-con-texto::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5); /* Semitransparente */
+  z-index: 1;
+}
+
+/* Texto posicionado */
+.imagen-con-texto .texto {
+  position: absolute; /* Ahora sí puedes colocarlo donde quieras */
+  top: 20px;   /* distancia desde arriba */
+  left: 19px;  /* distancia desde la izquierda */
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  z-index: 2; /* Para que esté encima del overlay */
+}
+</style>
+</head>
+<body>
+<h2>Donde Estan todos los Grubs?</h2>
+<p>para ayudarte a encontrar todods los grubs en el mapa, primero tienes que encontrar el archivo user.dat</p>
+<table>
+  <thead>
+      <tr><tb>nesecitas ayuda para encontrar el archivo user.dat ?<br><br></tb></tr>
+    <tr>
+      <th>sistema</th>
+      <th>Ruta/carpeta</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Windows</td>
+      <td>C:\Users\Usuario\AppData\LocalLow\Team Cherry\Hollow Knight\user.dat</td>
+    </tr>
+    <tr>
+      <td>macOS</td>
+      <td>~/Library/Application Support/com.TeamCherry.HollowKnight/user.dat</td>
+    </tr>
+    <tr>
+      <td>Linux</td>
+      <td>~/.config/unity3d/Team Cherry/Hollow Knight/user.dat</td>
+    </tr>
+    <tr>
+      <td>Android</td>
+      <td>/storage/emulated/Android/data/com.TeamCherry.HollowKnight/files/user.dat</td>
+    </tr>
+  </tbody>
+</table>
+<br><br><br>
+<input type="file" id="fileInput" accept=".dat">
+<br><br>
+<button id="decodeBtn" disabled>Enviar</button>
+<br><br><br>
+<div class="imagen-con-texto">
+  <img src="img.png" alt="Fondo">
+  <div class="texto">Sé que estás ahí, larva, y voy a encontrarte.</div>
+</div>
+<script>
+// --------------------
+// Variables y botones
+let selectedFile = null;
+const fileInput = document.getElementById("fileInput");
+const decodeBtn = document.getElementById("decodeBtn");
+
+fileInput.addEventListener("change", () => {
+    selectedFile = fileInput.files[0];
+    decodeBtn.disabled = !selectedFile;
+});
+
+// --------------------
+// Funciones base64
+const BASE64_ARRAY = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".split("").map(c => c.charCodeAt(0));
+const BASE64_DECODE_TABLE = new Map(BASE64_ARRAY.map((ord,i)=>[ord,i]));
+
+function Base64Decode(buffer){
+    buffer = new Uint8Array(buffer).slice();
+    buffer = buffer.map(v => BASE64_DECODE_TABLE.get(v));
+    let p = buffer.indexOf(64); buffer = buffer.subarray(0, p != -1 ? p : buffer.length);
+    var output = new Uint8Array(3*buffer.length/4);
+    let continuous = Math.floor(buffer.length/4)*4;
+    for(let i=0;i<continuous;i+=4){
+        let k = 3*i/4;
+        output[k] = buffer[i]<<2 | buffer[i+1]>>4;
+        output[k+1] = (buffer[i+1]&0xF)<<4 | buffer[i+2]>>2;
+        output[k+2] = (buffer[i+2]&3)<<6 | buffer[i+3];
+    }
+    if(buffer[continuous]!=undefined){
+        let k = 3*continuous/4;
+        output[k] = buffer[continuous]<<2 | buffer[continuous+1]>>4;
+        if(buffer[continuous+2]!=undefined){
+            output[k+1] = (buffer[continuous+1]&0xF)<<4 | buffer[continuous+2]>>2;
+        }
+    }
+    return output;
+}
+
+// --------------------
+// Funciones helper
+const cSharpHeader = [0,1,0,0,0,255,255,255,255,1,0,0,0,0,0,0,0,6,1,0,0,0];
+
+function RemoveHeader(bytes){
+    bytes = bytes.subarray(cSharpHeader.length, bytes.length-1); 
+    let lengthCount = 0;
+    for(let i=0;i<5;i++){
+        lengthCount++;
+        if((bytes[i]&0x80)==0) break;
+    }
+    bytes = bytes.subarray(lengthCount);
+    return bytes;
+}
+
+function StringToBytes(string){
+    return new TextEncoder().encode(string);
+}
+
+// AES-ECB con aes-js
+const aesKey = StringToBytes('UKu52ePUBwetZ9wNX88o54dnfKRu0T1l');
+const ecb = new aesjs.ModeOfOperation.ecb(aesKey);
+
+function AESDecrypt(bytes){
+    let data = ecb.decrypt(bytes);
+    data = data.subarray(0, -data[data.length-1]); 
+    return data;
+}
+
+function BytesToString(bytes){
+    return new TextDecoder().decode(bytes);
+}
+
+function Decode(bytes){
+    bytes = RemoveHeader(bytes);
+    bytes = Base64Decode(bytes);
+    bytes = AESDecrypt(bytes);
+    return BytesToString(bytes);
+}
+
+// --------------------
+// Filtrar y quedarnos solo con sceneName y activated
+function filterGrubBottle(obj) {
+    let result = [];
+
+    function recursiveSearch(o) {
+        if (Array.isArray(o)) {
+            o.forEach(item => recursiveSearch(item));
+        } else if (o && typeof o === "object") {
+            if (o.id === "Grub Bottle") {
+                // solo mantener sceneName y activated
+                result.push({
+                    sceneName: o.sceneName,
+                    activated: o.activated
+                });
+            }
+            for (const key in o) {
+                recursiveSearch(o[key]);
+            }
+        }
+    }
+
+    recursiveSearch(obj);
+    return result;
+}
+
+// --------------------
+// Evento click enviar
+decodeBtn.addEventListener("click", () => {
+    if(!selectedFile) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e){
+        const bytes = new Uint8Array(e.target.result);
+
+        try{
+            const jsonString = Decode(bytes);
+
+            let jsonData;
+            try {
+                jsonData = JSON.parse(jsonString);
+            } catch {
+                jsonData = jsonString;
+            }
+
+            // filtrar solo "Grub Bottle"
+            const filteredData = filterGrubBottle(jsonData);
+
+            console.log("Decodificado crudo:", jsonData);
+            console.log("Filtrado:", filteredData);
+
+            // si no hay resultados, exportar array vacío []
+            const output = filteredData.length > 0 ? filteredData : [];
+
+            // enviar al PHP
+            const formData = new FormData();
+            formData.append("filename", selectedFile.name.replace(".dat",".json"));
+            formData.append("jsonData", JSON.stringify(output, null, 2));
+
+            fetch("save_json.php",{method:"POST",body:formData})
+            .then(res=>res.text())
+            .then(resp=>{
+                console.log("Respuesta del servidor:", resp);
+                window.location.href = "mapa/index.html";
+            })
+            .catch(err=>console.error(err));
+
+        }catch(err){
+            console.error("Error al decodificar:",err);
+        }
+    }
+    reader.readAsArrayBuffer(selectedFile);
+});
+</script>
+</body>
+</html>
